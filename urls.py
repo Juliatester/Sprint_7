@@ -14,3 +14,4 @@ class Urls:
     CREATE_COURIER = f"{BASE_URL}/api/v1/courier"
     LOGIN_COURIER = f"{BASE_URL}/api/v1/courier/login"
     COURIER_ORDERS_COUNT = f"{BASE_URL}/api/v1/courier/{{courier_id}}/ordersCount"
+    DELETE_COURIER = f"{BASE_URL}/api/v1/courier/{{courier_id}}"

@@ -3,7 +3,7 @@ import pytest
 import requests
 from urls import Urls
 from generations import Generation
-from data import register_new_courier_and_return_login_password
+from data import Messages
 
 
 class TestLoginCourier:

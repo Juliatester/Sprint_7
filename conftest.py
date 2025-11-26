@@ -1,34 +1,39 @@
 import pytest
-from data import register_new_courier_and_return_login_password
-from generations import Generation
+from scooter_api import ScooterApi
 
-@pytest.fixture()
-def base_url():
-    """Возвращает базовый URL"""
-    return "https://qa-scooter.praktikum-services.ru"
-
-
-@pytest.fixture()
-def create_unique_user():
-    """Генерирует уникальные данные для пользователя"""
-    user_data = {
-        'login': Generation.login(),
-        'password': Generation.password(),
-        'firstName': Generation.first_name()
-    }
-    return user_data
-
-@pytest.fixture()
-def unique_user():
-    """Создает уникального курьера и возвращает его данные"""
-    result = register_new_courier_and_return_login_password()
-    if result:
-        login, password, first_name = result
-        yield login, password, first_name
-    else:
-        pytest.skip("Не удалось создать курьера для теста")
 
 @pytest.fixture
 def api_client():
-    from scooter_api import ScooterApi
+    """Возвращает клиент API для тестов"""
     return ScooterApi()
+
+
+@pytest.fixture()
+def unique_user():
+    """Создает уникального курьера и возвращает его данные с удалением после теста"""
+    api = ScooterApi()
+    result = api.register_new_courier_and_return_login_password()
+    if result:
+        login, password, first_name = result
+        yield login, password, first_name
+        
+        login_response = api.login_courier(login, password)
+        if login_response.status_code == 200:
+            courier_id = login_response.json()["id"]
+            api.delete_courier(courier_id)
+    else:
+        pytest.skip("Не удалось создать курьера для теста")
+
+
+@pytest.fixture
+def create_and_delete_courier():
+    """Фикстура для создания и автоматического удаления курьера после теста"""
+    courier_data = {}
+    yield courier_data
+    
+    if courier_data.get('login') and courier_data.get('password'):
+        api = ScooterApi()
+        login_response = api.login_courier(courier_data['login'], courier_data['password'])
+        if login_response.status_code == 200:
+            courier_id = login_response.json()["id"]
+            api.delete_courier(courier_id)
